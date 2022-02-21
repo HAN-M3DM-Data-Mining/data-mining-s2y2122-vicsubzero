@@ -1,0 +1,112 @@
+---
+title: "Assigment - kNN DIY"
+author: 
+- Viktor Atanasov (630497)
+date: Sys.time()
+output: html_notebook
+
+---
+
+#Library
+
+```{r}
+library(tidyverse)
+library(googlesheets4)
+library(class)
+library(caret)
+
+library(BBmisc)
+```
+
+#DATA SETS 
+
+```{r}
+data <- read.csv("https://raw.githubusercontent.com/HAN-M3DM-Data-Mining/data-mining-s2y2122-vicsubzero/master/datasets/KNN-hcvdat0.csv")
+view(data)
+
+```
+
+
+#DATA UNDERSTANDING & GOAL OF THE MODEL 
+
+*Generate laboratory diagnostic pathways* 
+
+#DATA PREPARATION 
+
+```{r}
+#Cleaning the data, I remove the values that i think i wont need 
+
+cleanD <- data[,-1]
+cleanDA <- cleanD[,-3]
+cleanDA <- cleanDA[,-2]
+
+#viewing the data 
+
+table(cleanDA$Category)
+
+```
+```{r}
+
+#Assigning the names as factors with the factor function and then setting their labels (names)
+
+cleanDA$Category <- factor(cleanDA$Category, levels = c( "0=Blood Donor", "1=Hepatitis", "2=Fibrosis", "3=Cirrhosis"), labels = c("BloodDon","Hepa", "Fibros", "Cirr"))
+
+head(cleanDA, 10)
+table(cleanDA$Category)
+```
+```{r}
+#ckecking the data to determine collums with big diffrence betweeen Min and MAx value to use for the model 
+summary(cleanDA)
+
+#i read about a function that normalize sets. So instead of creating one I will try to see if it works. 
+
+test1 <- c(1:5)
+test2 <- c(1:5) * 10
+
+cat("Scaled test1:", scale(test1), "\n")
+cat("Scaled test2:", scale(test2), "\n")
+
+# it worked !!! to be sure i tested the normalized formula and i Installed a package which had the normalized function already 
+```
+```{r}
+# I tried to use the "scale" function and adopt it to sector2 but unfortunately it didn't work so i created the normalized formula from the ebook and used it to create the SECTOR2.
+
+normalize <- function(x) 
+  return ((x - min(x)) / (max(x) - min(x)))
+
+```
+
+```{r}
+# Making a mistake somewhere here 
+# SECTOR #2 
+nCols <- dim(cleanDA)[2]
+cleanDA_n <- sapply(2:nCols,
+                    function(x) {
+  normalize(cleanDA[,x])
+}) %>% as.data.frame()
+
+```
+```{r}
+#Splitting tha data in training sets 
+
+trainDA_feat <- cleanDA_n[1:469,  1]
+testDA_feat <- cleanDA_n[470:615,  1]
+
+```
+
+```{r}
+
+trainDA_labels <- cleanDA[541:588,  1]
+testDA_labels <- cleanDA[589:615,  1]
+
+```
+# MODELNG AND EVALUATING 
+
+```{r}
+
+leanDA_test_prediction <- knn(train = as.matrix(trainDA_feat), test = as.matrix(testDA_feat), cl = as.matrix(trainDA_labels), k = 21)
+head(cleanDA_test_pred)
+
+```
+
+
